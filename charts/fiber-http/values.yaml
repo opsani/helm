@@ -1,0 +1,63 @@
+# Default values for fiber-http.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# opsani - Opsani specific settings
+opsani:
+  account: <account_name>
+  application: <application_name>
+  # token - opsani token in base64 format
+  token:
+  namespace: default
+
+# replicaCount - number of replicas of main application
+replicaCount: 1
+
+# mainImage - image and settings to use for main applicaion
+mainImage:
+  repository: opsani/fiber-http
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+# envoyImage - image and settings to use for envoy sidecar
+envoyImage:
+  repository: opsani/envoy-proxy
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+# servoImage - image and settings to use for servo pod
+servoImage: 
+  repository: opsani/servox
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+# podAnnotations - annotations required for pods we want to scrape
+podAnnotations:
+  prometheus.opsani.com/scrape: "true"
+  prometheus.opsani.com/scheme: http
+  prometheus.opsani.com/path: /stats/prometheus
+  prometheus.opsani.com/port: "9901"
+
+# autoscaling - hpa settings
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 75
+
+# affinity - on cluster cration, we give the nodes a label and prefer to 
+#            deploy app pods on the node(s) with the respective matching label
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 1
+      preference:
+        matchExpressions:
+        - key: node.opsani.com/role
+          operator: In
+          values:
+          - app
+
+# service settings
+service:
+  port: 80

@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: servo
+  labels:
+    app.kubernetes.io/name: servo
+    app.kubernetes.io/component: core
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: servo
+  template:
+    metadata:
+      name: servo
+      labels:
+        app.kubernetes.io/name: servo
+        app.kubernetes.io/component: core
+    spec:
+      serviceAccountName: servo
+      containers:
+      - name: servo
+        image: "{{ .Values.servoImage.repository }}:{{ .Values.servoImage.tag | default .Chart.AppVersion }}"
+        env:
+        - name: OPSANI_OPTIMIZER
+          valueFrom:
+            configMapKeyRef:
+              name: servo-config
+              key: optimizer
+        - name: OPSANI_TOKEN_FILE
+          value: /servo/opsani.token
+        - name: SERVO_LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: servo-config
+              key: log_level
+        - name: POD_NAME
+          valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+        volumeMounts:
+        - name: servo-token-volume
+          mountPath: /servo/opsani.token
+          subPath: opsani.token
+          readOnly: true
+        - name: servo-config-volume
+          mountPath: /servo/servo.yaml
+          subPath: servo.yaml
+          readOnly: true
+        resources:
+          limits:
+            cpu: 250m
+            memory: 512Mi
+      - name: prometheus
+        image: quay.io/prometheus/prometheus:v2.20.1
+        args:
+          - '--storage.tsdb.retention.time=12h'
+          - '--config.file=/etc/prometheus/prometheus.yaml'
+        ports:
+        - name: webui
+          containerPort: 9090
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128M
+          limits:
+            cpu: 500m
+            memory: 1G
+        volumeMounts:
+        - name: prometheus-config-volume
+          mountPath: /etc/prometheus
+      volumes:
+      - name: servo-token-volume
+        secret:
+          secretName: servo-token
+          items:
+          - key: token
+            path: opsani.token
+      - name: servo-config-volume
+        configMap:
+          name: servo-config
+          items:
+          - key: servo.yaml
+            path: servo.yaml
+      - name: prometheus-config-volume
+        configMap:
+          name: prometheus-config
+
+      # Prefer deployment onto a Node labeled role=servo
+      # This ensures physical isolation and network transport if possible
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            preference:
+              matchExpressions:
+              - key: node.opsani.com/role
+                operator: In
+                values:
+                - servo

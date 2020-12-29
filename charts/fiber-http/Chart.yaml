@@ -1,0 +1,7 @@
+apiVersion: v2
+name: fiber-http
+description: A Helm chart for Kubernetes
+icon: https://drive.google.com/file/d/1OEi26pSRuc7zyYrD5fcfK_YqXq0d-2CK/view?usp=sharing
+type: application
+version: 0.1.0
+appVersion: 1.16.0
