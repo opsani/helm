@@ -61,7 +61,7 @@ https://console.opsani.com/accounts/dev.opsani.com/applications/ben-fiber-http-h
 
 ## Wrap up
 
-We should now have our main application (fiber-http) runnning with with an envoy sidebar, a k6 pod generating load, an Opsani Servo pod and within a few minutes we'll expect to also see our application canary deployed:
+We should now have our main application (fiber-http) runnning with with an envoy sidecar, a k6 pod generating load, an Opsani Servo pod and within a few minutes we'll expect to also see our application canary deployed:
 
 ```
 ❯ kubectl get pods
