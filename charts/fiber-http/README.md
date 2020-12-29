@@ -3,7 +3,7 @@ This is a ready-made Helm Chart that will install fiber-http, with Opsani preins
 
 * fiber-http running an envoy sidecar.
 * k6 running in it's own pod for load generation.
-* The Opsani Servo responsible for scraping metrics from the sidebar to send to the Opsani Optmizer backend (SaaS)
+* The Opsani Servo responsible for scraping metrics from the sidecar to send to the Opsani Optmizer backend (SaaS)
 
 ## Prerequisites
 
